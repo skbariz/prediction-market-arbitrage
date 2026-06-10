@@ -1,6 +1,6 @@
 # Live Arbitrage Opportunities
 
-**Last updated:** 2026-06-10 00:11 UTC &nbsp;·&nbsp; Kalshi: 399 markets &nbsp;·&nbsp; Polymarket: 811 markets &nbsp;·&nbsp; Matched pairs: 4
+**Last updated:** 2026-06-10 04:48 UTC &nbsp;·&nbsp; Kalshi: 399 markets &nbsp;·&nbsp; Polymarket: 817 markets &nbsp;·&nbsp; Matched pairs: 4
 
 > This file is auto-updated every 15 minutes by GitHub Actions.
 > Prices shown are **ask prices** (what you pay to enter).
@@ -16,10 +16,10 @@ These are the markets the bot has confirmed exist on both platforms. A gap needs
 
 | Market | Score | Kalshi Yes | Poly Yes | Gap | Closes |
 |--------|-------|-----------|---------|-----|--------|
-| Will the San Antonio win the 2026 Pro Basketball Finals | 100 | 0.380 | 0.378 | 0.3¢ | 2028-06-29 |
-| Will the New York win the 2026 Pro Basketball Finals? | 100 | 0.630 | 0.623 | 0.7¢ | 2028-06-29 |
-| Will Vegas Golden Knights win the 2025-26 Stanley Cup F | 97 | 0.620 | 0.612 | 0.8¢ | 2028-06-30 |
-| Will Carolina Hurricanes win the 2025-26 Stanley Cup Fi | 97 | 0.390 | 0.395 | 0.5¢ | 2028-06-30 |
+| Will the San Antonio win the 2026 Pro Basketball Finals | 100 | 0.380 | 0.377 | 0.4¢ | 2028-06-29 |
+| Will the New York win the 2026 Pro Basketball Finals? | 100 | 0.630 | 0.624 | 0.6¢ | 2028-06-29 |
+| Will Vegas Golden Knights win the 2025-26 Stanley Cup F | 97 | 0.450 | 0.414 | 3.6¢ | 2028-06-30 |
+| Will Carolina Hurricanes win the 2025-26 Stanley Cup Fi | 97 | 0.570 | 0.580 | 1.0¢ | 2028-06-30 |
 
 ---
 
