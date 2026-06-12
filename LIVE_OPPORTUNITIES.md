@@ -1,6 +1,6 @@
 # Live Arbitrage Opportunities
 
-**Last updated:** 2026-06-12 22:06 UTC &nbsp;·&nbsp; Kalshi: 369 markets &nbsp;·&nbsp; Polymarket: 820 markets &nbsp;·&nbsp; Matched pairs: 4
+**Last updated:** 2026-06-12 23:49 UTC &nbsp;·&nbsp; Kalshi: 232 markets &nbsp;·&nbsp; Polymarket: 820 markets &nbsp;·&nbsp; Matched pairs: 2
 
 > This file is auto-updated every 15 minutes by GitHub Actions.
 > Prices shown are **ask prices** (what you pay to enter).
@@ -16,10 +16,8 @@ These are the markets the bot has confirmed exist on both platforms. A gap needs
 
 | Market | Score | Kalshi Yes | Poly Yes | Gap | Closes |
 |--------|-------|-----------|---------|-----|--------|
-| Will the San Antonio win the 2026 Pro Basketball Finals | 100 | 0.210 | 0.191 | 1.9¢ | 2028-06-29 |
-| Will the New York win the 2026 Pro Basketball Finals? | 100 | 0.810 | 0.814 | 0.4¢ | 2028-06-29 |
-| Will Vegas Golden Knights win the 2025-26 Stanley Cup F | 97 | 0.220 | 0.200 | 2.0¢ | 2028-06-30 |
-| Will Carolina Hurricanes win the 2025-26 Stanley Cup Fi | 97 | 0.790 | 0.795 | 0.5¢ | 2028-06-30 |
+| Will the San Antonio win the 2026 Pro Basketball Finals | 100 | 0.210 | 0.192 | 1.8¢ | 2028-06-29 |
+| Will the New York win the 2026 Pro Basketball Finals? | 100 | 0.800 | 0.808 | 0.8¢ | 2028-06-29 |
 
 ---
 
