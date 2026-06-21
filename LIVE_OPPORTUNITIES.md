@@ -1,6 +1,6 @@
 # Live Arbitrage Opportunities
 
-**Last updated:** 2026-06-21 20:23 UTC &nbsp;·&nbsp; Kalshi: 392 markets &nbsp;·&nbsp; Polymarket: 801 markets &nbsp;·&nbsp; Matched pairs: 0
+**Last updated:** 2026-06-21 21:53 UTC &nbsp;·&nbsp; Kalshi: 457 markets &nbsp;·&nbsp; Polymarket: 801 markets &nbsp;·&nbsp; Matched pairs: 0
 
 > This file is auto-updated every 15 minutes by GitHub Actions.
 > Prices shown are **ask prices** (what you pay to enter).
