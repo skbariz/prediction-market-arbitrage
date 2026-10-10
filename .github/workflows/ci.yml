@@ -78,6 +78,7 @@ jobs:
       - name: Audit runtime and trading dependencies for known vulnerabilities
         run: |
           python -m venv /tmp/audit
+          /tmp/audit/bin/python -m pip install --upgrade pip
           /tmp/audit/bin/pip install ".[trading]" pip-audit
           /tmp/audit/bin/pip-audit --skip-editable --progress-spinner off
 
