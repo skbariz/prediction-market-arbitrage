@@ -1,0 +1,51 @@
+name: Bug report
+description: Something is not working as documented.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Do not paste API keys, private keys, wallet addresses you want to keep private, or your `.env` file.**
+        `prediction-arb check-config` masks secrets, so its output is safe to share.
+        Security problems belong in a [private report](https://github.com/skbariz/prediction-market-arbitrage/security/advisories/new), not here.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you run, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. prediction-arb scan
+        2. ...
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant output
+      description: Logs or tracebacks. Remove anything sensitive first.
+      render: text
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Output of `prediction-arb --version`, or the commit hash.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: Python 3.12, Ubuntu 24.04
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Mode
+      options:
+        - Scan / dry run
+        - Live trading

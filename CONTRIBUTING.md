@@ -1,39 +1,60 @@
 # Contributing
 
-Contributions are welcome. The highest-value open work is listed in [Known Limitations](README.md#known-limitations--roadmap).
+Thanks for helping improve `prediction-arb`. Bug reports, matcher improvements, documentation, and
+features from the [roadmap](README.md#limitations-and-roadmap) are all welcome.
 
-## Setup
+## Development setup
 
 ```bash
-git clone https://github.com/skbariz/prediction-market-arbitrage
+git clone https://github.com/skbariz/prediction-market-arbitrage.git
 cd prediction-market-arbitrage
-pip install -r requirements.txt
-cp .env.example .env
-# Fill in credentials (Kalshi required for order tests; Polymarket read-only needs none)
+python -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"
+pre-commit install        # optional: lint and secret-scan before each commit (pip install pre-commit)
 ```
 
-## Before submitting a PR
+No credentials are needed for development. The test suite is fully offline, and `prediction-arb
+scan` uses public market data.
 
-1. Run the offline tests: `python tests/smoke_test.py`
-2. Run the live pipeline test: `python tests/live_test.py` (read-only, no credentials needed)
-3. If you changed the matcher, run `python tests/debug_matching.py` and verify no real pairs were dropped
+## Before opening a pull request
 
-## Key areas
+```bash
+ruff format .
+ruff check .
+pytest
+```
 
-### Polymarket CLOB auth (most wanted)
+- Add or update tests for any behaviour change. Trading logic (sizing, fees, risk, execution) must
+  be covered by tests.
+- If you change the matcher, run `prediction-arb match-debug` and `prediction-arb scan`, and confirm
+  in the PR that no genuine pairs were lost and no false pairs were added.
+- Update the docs (`README.md`, `docs/`) and add a line under **Unreleased** in `CHANGELOG.md`.
+- Keep pull requests focused: one logical change per PR.
 
-`src/clients/polymarket.py` → `place_order()` has the payload structure but the `_auth_headers()` method returns stubs. It needs HMAC-SHA256 signing per the [Polymarket CLOB API docs](https://docs.polymarket.com/#authentication). The credential fields are already wired in `config/settings.py`.
+## Guidelines
 
-### Improving match coverage
+- **Safety first.** Changes must never make it easier to start live trading by accident, or to end
+  up with unhedged exposure. Dry run stays the default.
+- **Never commit secrets,** including in tests: generate throwaway keys in the test itself (see
+  `tests/test_kalshi.py`).
+- **Keep I/O at the edges.** Parsing, matching, detection, and risk checks are pure functions. Keep
+  them that way so they stay easy to test.
+- Follow the existing style: type hints, small modules, and docstrings or comments that explain *why*
+  rather than *what*.
+- Cite sources (exchange docs) when encoding exchange rules such as fees or API formats.
 
-`src/core/matcher.py` → `_KALSHI_EXPANSIONS` maps Kalshi's generic league names to real names. Add entries here if you find markets that should match but don't. Run `python tests/debug_matching.py` to inspect scores for pairs below the threshold.
+## Areas that need help
 
-### Fee accuracy
+- **Matcher coverage** (`src/prediction_arb/matcher.py`): new normalization rules, and guards for
+  categories beyond championship markets.
+- **Position lifecycle:** detecting settlement and recording realized P&L.
+- **Order-book depth:** checking available size at the quoted price before sizing a trade.
+- **Alerts:** notifying (Slack, email, webhook) when an opportunity appears.
 
-`src/utils/fees.py` → Kalshi's fee rate is hardcoded at 7%. If you have access to Kalshi's fee schedule API or want to add tiered lookup logic, this is the place.
+## Reporting bugs and requesting features
 
-## Style
+Use the [issue templates](https://github.com/skbariz/prediction-market-arbitrage/issues/new/choose).
+For security problems, follow [SECURITY.md](SECURITY.md) instead of opening an issue.
 
-- No docstrings on obvious functions
-- No inline comments on self-explanatory code
-- Keep it minimal — don't add abstractions beyond what the task needs
+By participating you agree to follow the [Code of Conduct](CODE_OF_CONDUCT.md). Contributions are
+licensed under the [MIT License](LICENSE).
