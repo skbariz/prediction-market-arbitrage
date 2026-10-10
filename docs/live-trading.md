@@ -97,5 +97,7 @@ The outcome is recorded in `DB_PATH`:
 - Keep only the capital you are prepared to lose on each exchange.
 - Run the bot under a process supervisor (systemd, Docker `--restart=on-failure`) and alert on
   `CRITICAL` log lines.
+- In Docker, mount the Kalshi key read-only and set `KALSHI_PRIVATE_KEY_PATH` rather than passing
+  the key as an environment variable, which `docker inspect` reveals. Keep `.env` at `chmod 600`.
 - Keep the machine, `.env`, key files, `data/`, and `logs/` private. Rotate keys immediately if you
   suspect exposure (see [SECURITY.md](../SECURITY.md)).

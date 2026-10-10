@@ -35,8 +35,11 @@ This tool asks for credentials that control real money. To keep them safe:
 - Store the Kalshi private key as a file outside the repository (`KALSHI_PRIVATE_KEY_PATH`) with
   `chmod 600`.
 - Use a dedicated Polymarket wallet that holds only your trading capital.
-- `data/` (positions database) and `logs/` record your trading activity. They are git-ignored; keep
-  them private.
+- `data/` (positions database) and `logs/` record your trading activity. They are git-ignored and
+  created readable only by you; keep them private. Tracebacks never include variable values, so
+  secrets are not written to the logs.
+- API base URLs can only point at `kalshi.com`/`kalshi.co` and `polymarket.com`. If anyone tells
+  you to set them to another host, do not.
 - The published live-opportunities workflow uses only public market data. It does **not** need, and
   should not be given, any exchange credentials.
 - Before committing, consider enabling the bundled pre-commit hooks (`pre-commit install`), which

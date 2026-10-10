@@ -47,3 +47,19 @@ First packaged release. Reorganizes the original scripts into an installable pac
 ### Removed
 
 - Ad-hoc debug scripts, which printed credential identifiers, and personal working notes.
+
+### Security
+
+- Tracebacks no longer include local variable values, which could have written private keys to
+  the console and log file.
+- API base URLs must be on the exchanges' own domains. Signed requests and Polymarket API
+  credentials can no longer be redirected to another host by configuration, and Kalshi order
+  requests do not follow redirects.
+- Untrusted exchange data is validated: non-finite numbers and implausible fee rates are rejected.
+- A crash in one order leg can no longer hide a fill on the other, and the bot halts if a live
+  position cannot be recorded.
+- The log file and positions database are created readable only by their owner, and a world-readable
+  Kalshi key file triggers a warning.
+- Bare URLs and @mentions in market titles are neutralized in the published report.
+- The live-report workflow's write token is isolated from third-party code; CI audits dependencies
+  (pip-audit) and workflows (zizmor); all actions, hooks, and the Docker base image are pinned.
