@@ -11,15 +11,20 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   analyze:
+    name: Analyze
     # Code scanning is free for public repositories; private ones need GitHub Advanced Security.
     if: ${{ !github.event.repository.private }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
-      contents: read
-      security-events: write
+      contents: read # check out the code
+      security-events: write # upload code-scanning results
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

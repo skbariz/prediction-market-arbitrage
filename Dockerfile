@@ -2,7 +2,8 @@
 #         docker build --build-arg EXTRAS=trading -t prediction-arb:trading .   # live trading
 # Run:    docker run --rm prediction-arb scan
 #         docker run --rm --env-file .env -v "$PWD/data:/app/data" prediction-arb run
-FROM python:3.12-slim
+# Pinned by digest; Dependabot proposes updates.
+FROM python:3.12-slim@sha256:a6e34c598f2467ed0e9a8d349809fcd8b5c603269512df273a0bb1784edc11b1
 
 ARG EXTRAS=""
 ENV PYTHONDONTWRITEBYTECODE=1 \
