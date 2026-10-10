@@ -88,3 +88,20 @@ async def test_place_order_without_credentials_fails_safely():
         result = await client.place_order(market, Side.YES, 0.5, 10)
     assert not result.ok
     assert "credentials" in result.error
+
+
+@pytest.mark.parametrize("rate", [-0.5, 5, "nan", "inf"])
+def test_implausible_fee_rates_fall_back_to_default(rate):
+    raw = {**RAW_MARKET, "feeSchedule": {"rate": rate}}
+    assert parse_market(raw).fee_rate is None
+
+
+@pytest.mark.parametrize("field", ["bestAsk", "bestBid"])
+def test_non_finite_quotes_are_ignored(field):
+    market = parse_market({**RAW_MARKET, field: "inf"})
+    assert market is not None
+    assert all(0 < p < 1 for p in (market.price.yes, market.price.no))
+
+
+def test_garbage_volume_does_not_break_parsing():
+    assert parse_market({**RAW_MARKET, "volumeClob": "lots"}).volume == 0.0

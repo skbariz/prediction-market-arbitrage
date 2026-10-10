@@ -43,3 +43,14 @@ def test_init_is_idempotent(tmp_path):
     store.init()
     store.init()
     assert store.list_positions() == []
+
+
+def test_database_file_is_private(tmp_path):
+    import os
+    import stat
+
+    store = PositionStore(tmp_path / "data" / "positions.db")
+    store.init()
+    if os.name == "posix":
+        assert stat.S_IMODE(store.db_path.stat().st_mode) == 0o600
+        assert stat.S_IMODE(store.db_path.parent.stat().st_mode) == 0o700

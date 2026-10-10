@@ -39,6 +39,8 @@ def test_reads_dotenv_file(tmp_path):
         ("KALSHI_BASE_URL", "http://insecure.example"),
         ("POLY_SIGNATURE_TYPE", "7"),
         ("MAX_OPEN_POSITIONS", "abc"),
+        ("KALSHI_FEE_RATE", "-0.1"),
+        ("POLY_DEFAULT_FEE_RATE", "2"),
     ],
 )
 def test_rejects_invalid_values(monkeypatch, name, value):

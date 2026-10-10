@@ -9,6 +9,7 @@ from prediction_arb.config import Settings
 from prediction_arb.scanner import ScanResult
 
 _MD_SPECIAL = re.compile(r"([\\`*_{}\[\]()#+!|~>-])")
+_AUTOLINK = re.compile(r"://|(?i:\bwww)\.|@")
 
 
 def escape_md(text: str, max_len: int = 70) -> str:
@@ -17,6 +18,9 @@ def escape_md(text: str, max_len: int = 70) -> str:
     if len(text) > max_len:
         text = text[: max_len - 1].rstrip() + "…"
     text = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    # GitHub turns bare URLs, "www." hosts, and @handles into links/mentions even when the
+    # Markdown link syntax is escaped; a zero-width space breaks those patterns.
+    text = _AUTOLINK.sub(lambda m: m.group(0)[0] + "\u200b" + m.group(0)[1:], text)
     return _MD_SPECIAL.sub(r"\\\1", text)
 
 

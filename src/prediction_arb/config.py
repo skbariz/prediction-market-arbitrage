@@ -192,6 +192,9 @@ class Settings:
             errors.append("EXECUTION_MIN_MATCH_SCORE must be between 0 and 100")
         if self.max_days_to_resolution < 0:
             errors.append("MAX_DAYS_TO_RESOLUTION must be 0 (no limit) or a positive integer")
+        for name in ("kalshi_fee_rate", "poly_default_fee_rate"):
+            if not 0 <= getattr(self, name) <= 1:
+                errors.append(f"{name.upper()} must be between 0 and 1")
         if not 1 <= self.poly_pages <= 50:
             errors.append("POLY_PAGES must be between 1 and 50")
         if self.poly_signature_type not in (0, 1, 2):

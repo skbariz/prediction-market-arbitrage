@@ -10,6 +10,8 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import math
+import os
 import time
 import uuid
 from datetime import datetime, timezone
@@ -38,7 +40,12 @@ class KalshiAuthError(RuntimeError):
 
 def load_private_key(settings: Settings) -> PrivateKey | None:
     if settings.kalshi_private_key_path:
-        pem = Path(settings.kalshi_private_key_path).expanduser().read_bytes()
+        path = Path(settings.kalshi_private_key_path).expanduser()
+        if os.name == "posix" and path.stat().st_mode & 0o077:
+            logger.warning(
+                f"Kalshi private key file {path} is readable by other users; run: chmod 600 {path}"
+            )
+        pem = path.read_bytes()
     elif settings.kalshi_private_key:
         pem = settings.kalshi_private_key.encode()
     else:
@@ -67,6 +74,13 @@ def sign_message(key: PrivateKey, message: bytes) -> str:
     return base64.b64encode(signature).decode()
 
 
+def _finite(value: Any) -> float:
+    number = float(value)
+    if not math.isfinite(number):
+        raise ValueError(f"non-finite number {value!r}")
+    return number
+
+
 def _parse_time(value: Any) -> datetime:
     return datetime.fromisoformat(str(value).replace("Z", "+00:00"))
 
@@ -88,8 +102,8 @@ def parse_market(raw: dict[str, Any], now: datetime | None = None) -> Market | N
         # latest in 2029"); expected_expiration_time is when the market should actually resolve.
         expected = raw.get("expected_expiration_time")
         resolves_at = _parse_time(expected) if expected else close_time
-        price = MarketPrice(yes=float(yes_ask), no=float(no_ask))
-        volume = float(raw.get("volume_fp") or raw.get("volume") or 0)
+        price = MarketPrice(yes=_finite(yes_ask), no=_finite(no_ask))
+        volume = _finite(raw.get("volume_fp") or raw.get("volume") or 0)
     except (TypeError, ValueError):
         logger.debug(f"Kalshi: skipping unparseable market {ticker}")
         return None
@@ -195,6 +209,10 @@ class KalshiClient:
         price_cents = round(price * 100)
         if not 1 <= price_cents <= 99:
             return OrderResult(Platform.KALSHI, ok=False, error=f"price {price} out of range")
+        if contracts < 1:
+            return OrderResult(
+                Platform.KALSHI, ok=False, error=f"invalid contract count {contracts}"
+            )
         endpoint = "/portfolio/orders"
         payload = {
             "ticker": ticker,
@@ -210,6 +228,8 @@ class KalshiClient:
                 f"{self.base_url}{endpoint}",
                 json=payload,
                 headers=self.auth_headers("POST", endpoint),
+                # Never forward signed headers to another location.
+                allow_redirects=False,
             ) as resp:
                 body = await resp.json(content_type=None)
                 if resp.status not in (200, 201):

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import math
 from datetime import datetime, timezone
 from typing import Any
 
@@ -35,12 +36,17 @@ def _json_list(value: Any) -> list[Any]:
     return []
 
 
-def _positive_float(value: Any) -> float | None:
+def _finite_float(value: Any) -> float | None:
     try:
         number = float(value)
     except (TypeError, ValueError):
         return None
-    return number if number > 0 else None
+    return number if math.isfinite(number) else None
+
+
+def _positive_float(value: Any) -> float | None:
+    number = _finite_float(value)
+    return number if number is not None and number > 0 else None
 
 
 def _fee_rate(raw: dict[str, Any]) -> float | None:
@@ -48,9 +54,10 @@ def _fee_rate(raw: dict[str, Any]) -> float | None:
         return 0.0
     schedule = raw.get("feeSchedule")
     if isinstance(schedule, dict):
-        rate = schedule.get("rate")
-        if isinstance(rate, int | float):
-            return float(rate)
+        rate = _finite_float(schedule.get("rate"))
+        # A negative or absurd rate would overstate profit; fall back to the conservative default.
+        if rate is not None and 0 <= rate <= 1:
+            return rate
     return None
 
 
@@ -77,6 +84,8 @@ def parse_market(raw: dict[str, Any], now: datetime | None = None) -> Market | N
     try:
         close_time = datetime.fromisoformat(str(raw_close).replace("Z", "+00:00"))
         mid = [float(p) for p in prices] if len(prices) == 2 else None
+        if mid is not None and not all(math.isfinite(m) for m in mid):
+            return None
     except (TypeError, ValueError):
         return None
     if close_time <= now:
@@ -101,7 +110,7 @@ def parse_market(raw: dict[str, Any], now: datetime | None = None) -> Market | N
         title=str(raw.get("question", "")),
         price=MarketPrice(yes=asks[yes_idx], no=asks[no_idx]),
         resolves_at=close_time,
-        volume=float(raw.get("volumeClob") or raw.get("volume") or 0),
+        volume=_finite_float(raw.get("volumeClob") or raw.get("volume")) or 0.0,
         is_active=bool(raw.get("active"))
         and not raw.get("closed")
         and raw.get("acceptingOrders", True) is not False,
@@ -208,6 +217,10 @@ class PolymarketClient:
             )
         if not token_id:
             return OrderResult(Platform.POLYMARKET, ok=False, error="market has no CLOB token id")
+        if not 0 < price < 1 or shares < 1:
+            return OrderResult(
+                Platform.POLYMARKET, ok=False, error=f"invalid order: {shares} @ {price}"
+            )
 
         def _submit() -> dict[str, Any]:
             from py_clob_client.clob_types import OrderArgs, OrderType, PartialCreateOrderOptions

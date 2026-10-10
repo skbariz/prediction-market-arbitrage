@@ -10,6 +10,7 @@ from prediction_arb.models import (
     ArbOpportunity,
     Market,
     OrderResult,
+    Platform,
     Position,
     PositionStatus,
     Side,
@@ -26,6 +27,14 @@ class PolymarketTrader(Protocol):
     async def place_order(
         self, market: Market, side: Side, price: float, shares: int
     ) -> OrderResult: ...
+
+
+def _as_result(outcome: OrderResult | BaseException, platform: Platform) -> OrderResult:
+    if isinstance(outcome, OrderResult):
+        return outcome
+    if not isinstance(outcome, Exception):
+        raise outcome
+    return OrderResult(platform, ok=False, error=f"{type(outcome).__name__}: {outcome}")
 
 
 def describe(opp: ArbOpportunity) -> str:
@@ -56,12 +65,16 @@ async def execute(
         return Position(opportunity=opp, status=PositionStatus.DRY_RUN)
 
     logger.info(f"Executing: {describe(opp)}")
-    k_result, p_result = await asyncio.gather(
+    # return_exceptions keeps one leg's crash from hiding the other leg's fill.
+    k_raw, p_raw = await asyncio.gather(
         kalshi.place_order(
             opp.kalshi_market.market_id, opp.kalshi_side, opp.kalshi_price, opp.contracts
         ),
         poly.place_order(opp.poly_market, opp.poly_side, opp.poly_price, opp.contracts),
+        return_exceptions=True,
     )
+    k_result = _as_result(k_raw, Platform.KALSHI)
+    p_result = _as_result(p_raw, Platform.POLYMARKET)
 
     if k_result.ok and p_result.ok:
         status = PositionStatus.OPEN

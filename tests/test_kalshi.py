@@ -176,3 +176,59 @@ async def test_place_order_rejects_out_of_range_price(fake_kalshi):
         result = await client.place_order("T", Side.YES, 0.999, 1)
     assert not result.ok
     assert received == []
+
+
+@pytest.mark.parametrize("value", ["nan", "inf"])
+def test_parse_market_rejects_non_finite_prices(value):
+    assert parse_market({**RAW_MARKET, "yes_ask_dollars": value}) is None
+
+
+def test_warns_when_key_file_is_readable_by_others(tmp_path):
+    import os
+
+    from prediction_arb.log import logger
+
+    _, pem = _rsa_pem()
+    path = tmp_path / "kalshi.pem"
+    path.write_text(pem)
+    path.chmod(0o644)
+    messages: list[str] = []
+    sink = logger.add(messages.append, level="WARNING")
+    try:
+        load_private_key(Settings(kalshi_private_key_path=str(path)))
+    finally:
+        logger.remove(sink)
+    if os.name == "posix":
+        assert any("chmod 600" in m for m in messages)
+
+
+async def test_place_order_does_not_follow_redirects(aiohttp_unused_port):
+    hits = {"redirect_target": 0}
+
+    async def redirect(request: web.Request) -> web.Response:
+        raise web.HTTPTemporaryRedirect(f"http://127.0.0.1:{port}/elsewhere")
+
+    async def elsewhere(request: web.Request) -> web.Response:
+        hits["redirect_target"] += 1
+        return web.json_response({"order": {"order_id": "x", "status": "executed"}})
+
+    app = web.Application()
+    app.router.add_post("/trade-api/v2/portfolio/orders", redirect)
+    app.router.add_post("/elsewhere", elsewhere)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    port = aiohttp_unused_port()
+    await web.TCPSite(runner, "127.0.0.1", port).start()
+    try:
+        _, pem = _rsa_pem()
+        settings = Settings(
+            kalshi_api_key_id="id",
+            kalshi_private_key=pem,
+            kalshi_base_url=f"http://127.0.0.1:{port}/trade-api/v2",
+        )
+        async with KalshiClient(settings) as client:
+            result = await client.place_order("T", Side.YES, 0.5, 1)
+    finally:
+        await runner.cleanup()
+    assert not result.ok
+    assert hits["redirect_target"] == 0

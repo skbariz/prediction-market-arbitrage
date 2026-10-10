@@ -59,3 +59,17 @@ async def test_no_fills_is_a_failed_position(opp):
         dry_run=False,
     )
     assert position.status is PositionStatus.FAILED
+
+
+class CrashingTrader:
+    async def place_order(self, *args):
+        raise RuntimeError("connection reset")
+
+
+async def test_a_crashing_leg_does_not_hide_the_other_legs_fill(opp):
+    position = await execute(
+        opp, CrashingTrader(), FakeTrader(Platform.POLYMARKET, True), dry_run=False
+    )
+    assert position.status is PositionStatus.UNHEDGED
+    assert "connection reset" in position.kalshi_order.error
+    assert position.poly_order.ok

@@ -21,9 +21,7 @@ def configure_logging(level: str = "INFO", log_file: str = "") -> None:
     # diagnose/backtrace must stay off: loguru's diagnose mode prints the values of local
     # variables in tracebacks, which would write private keys and API secrets to the logs.
     logger.remove()
-    logger.add(
-        sys.stderr, level=level, format=_CONSOLE_FORMAT, diagnose=False, backtrace=False
-    )
+    logger.add(sys.stderr, level=level, format=_CONSOLE_FORMAT, diagnose=False, backtrace=False)
     if log_file:
         Path(log_file).parent.mkdir(mode=0o700, parents=True, exist_ok=True)
         logger.add(

@@ -37,7 +37,17 @@ async def run_cycle(
         position = await executor.execute(opp, kalshi, poly, dry_run=settings.dry_run)
         if position.status is PositionStatus.DRY_RUN:
             continue
-        store.save(position)
+        try:
+            store.save(position)
+        except Exception:
+            # Without a record, the next cycle would not know this pair is held and could re-enter.
+            logger.exception(
+                f"Halting: could not record a {position.status.value} position "
+                f"(Kalshi order {getattr(position.kalshi_order, 'order_id', None)}, "
+                f"Polymarket order {getattr(position.poly_order, 'order_id', None)}). "
+                "Record it manually before restarting."
+            )
+            return True
         logger.info(f"Position {position.id} saved with status {position.status.value}")
         if position.status in (PositionStatus.OPEN, PositionStatus.UNHEDGED):
             active_keys.add(opp.key)

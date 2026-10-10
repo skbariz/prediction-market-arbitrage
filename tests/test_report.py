@@ -15,6 +15,13 @@ def test_escape_md_neutralizes_untrusted_titles():
     assert "\n" not in escaped
 
 
+def test_escape_md_breaks_autolinks_and_mentions():
+    escaped = escape_md("Visit https://evil.example or WWW.evil.example, ask @someone", max_len=500)
+    assert "://" not in escaped
+    assert "www." not in escaped.lower()
+    assert "@s" not in escaped and "@\u200bs" in escaped
+
+
 def test_escape_md_truncates():
     assert escape_md("x" * 100, max_len=10) == "x" * 9 + "…"
 

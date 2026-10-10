@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sqlite3
 from contextlib import closing
 from datetime import datetime, timezone
@@ -25,7 +26,10 @@ class PositionStore:
         return conn
 
     def init(self) -> None:
-        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        self.db_path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+        if not self.db_path.exists():
+            # Trade history is private; SQLite gives its journal files the same permissions.
+            os.close(os.open(self.db_path, os.O_CREAT | os.O_WRONLY, 0o600))
         schema = resources.files("prediction_arb").joinpath("schema.sql").read_text()
         with closing(self._connect()) as conn, conn:
             conn.executescript(schema)
