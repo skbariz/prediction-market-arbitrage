@@ -17,6 +17,7 @@ logs/
 *.sqlite
 *.sqlite3
 *.log
+LIVE_OPPORTUNITIES.md
 
 # ─── Python ────────────────────────────────────────────────────────────────────
 __pycache__/

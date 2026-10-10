@@ -1,0 +1,44 @@
+name: Live opportunities
+
+# Publishes LIVE_OPPORTUNITIES.md to the `live-data` branch every 15 minutes.
+# The branch is force-pushed as a single commit so it never accumulates history,
+# and `main` stays free of automated commits. Only public market data is used, so
+# no exchange credentials are needed or exposed to this workflow.
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: live-opportunities
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - run: pip install .
+      - name: Generate report
+        env:
+          DRY_RUN: "true"
+        run: prediction-arb --env-file /dev/null report --output "$RUNNER_TEMP/LIVE_OPPORTUNITIES.md"
+      - name: Publish to the live-data branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch --orphan live-data
+          cp "$RUNNER_TEMP/LIVE_OPPORTUNITIES.md" LIVE_OPPORTUNITIES.md
+          git add LIVE_OPPORTUNITIES.md
+          git commit --quiet -m "Update live opportunities"
+          git push --force --quiet origin live-data
