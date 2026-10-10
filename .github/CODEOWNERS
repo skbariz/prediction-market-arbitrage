@@ -1,0 +1,7 @@
+# Changes to CI and to code that signs or places orders need maintainer review.
+*                                   @skbariz
+/.github/                           @skbariz
+/src/prediction_arb/clients/        @skbariz
+/src/prediction_arb/executor.py     @skbariz
+/src/prediction_arb/risk.py         @skbariz
+/src/prediction_arb/config.py       @skbariz
