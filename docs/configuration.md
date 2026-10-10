@@ -5,8 +5,12 @@ from the current directory (or the path given with `--env-file`). Variables alre
 environment take precedence over the file.
 
 Invalid values stop the program with a message that names the setting. Run
-`prediction-arb check-config` to see the effective configuration; secret values are shown only as
-`<set>` or `<not set>`.
+`prediction-arb check-config` to see the effective configuration; secrets and account identifiers
+(key ID, funder address) are shown only as `<set>` or `<not set>`.
+
+API base URLs are restricted to the exchanges' own domains. Authenticated requests carry signatures
+and, for Polymarket, the API key and passphrase, so sending them to any other host would expose your
+account. A `.env` file that points them elsewhere is rejected at start-up.
 
 ## Mode
 
@@ -43,7 +47,7 @@ Market data is public. These are needed only for live order placement.
 | `KALSHI_API_KEY_ID` | — | The API key ID shown when you create a key at <https://kalshi.com/account/profile>. |
 | `KALSHI_PRIVATE_KEY_PATH` | — | **Recommended.** Path to the private key `.pem` file downloaded with the key. `~` is expanded. |
 | `KALSHI_PRIVATE_KEY` | — | Alternative for CI/containers: the PEM contents on one line, with line breaks written as `\n`. |
-| `KALSHI_BASE_URL` | `https://api.elections.kalshi.com/trade-api/v2` | Use `https://demo-api.kalshi.co/trade-api/v2` for Kalshi's [demo environment](https://docs.kalshi.com/getting_started/demo_env). Must be `https://`. |
+| `KALSHI_BASE_URL` | `https://api.elections.kalshi.com/trade-api/v2` | Use `https://demo-api.kalshi.co/trade-api/v2` for Kalshi's [demo environment](https://docs.kalshi.com/getting_started/demo_env). Must be an `https://` URL on `kalshi.com` or `kalshi.co`. |
 | `KALSHI_SERIES` | `KXNBA,KXNHL,KXMLB,KXNFL,KXBTC,KXETH,KXECON,KXPRES,KXGOV,KXWORLD,KXTECH,KXSCI` | Comma-separated Kalshi series tickers to scan. |
 
 RSA keys are signed with RSA-PSS/SHA-256 and Ed25519 keys with Ed25519, as Kalshi requires. The key
@@ -62,8 +66,8 @@ Market data is public. These are needed only for live order placement, which als
 | `POLY_FUNDER_ADDRESS` | — | Address that holds your funds. Required for signature types `1` and `2` (it is the proxy wallet address shown on your Polymarket profile). |
 | `POLY_API_KEY`, `POLY_API_SECRET`, `POLY_PASSPHRASE` | — | Optional. CLOB API credentials. When unset they are derived from `POLY_PRIVATE_KEY` on first use. |
 | `POLY_PAGES` | `20` | Number of 100-market pages to fetch, ordered by 24-hour volume (1–50). |
-| `POLY_CLOB_URL` | `https://clob.polymarket.com` | CLOB API base URL. |
-| `POLY_GAMMA_URL` | `https://gamma-api.polymarket.com` | Market-data API base URL. |
+| `POLY_CLOB_URL` | `https://clob.polymarket.com` | CLOB API base URL. Must be an `https://` URL on `polymarket.com`. |
+| `POLY_GAMMA_URL` | `https://gamma-api.polymarket.com` | Market-data API base URL. Must be an `https://` URL on `polymarket.com`. |
 | `POLY_CHAIN_ID` | `137` | Polygon mainnet. |
 
 ## Runtime

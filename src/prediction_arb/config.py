@@ -1,14 +1,16 @@
 """Runtime configuration loaded from environment variables (and an optional ``.env`` file).
 
-Every setting has a safe default. Secrets are excluded from ``repr`` so a ``Settings`` object
-can be logged without leaking credentials.
+Every setting has a safe default. Secrets and account identifiers are excluded from ``repr`` so a
+``Settings`` object can be logged without leaking credentials.
 """
 
 from __future__ import annotations
 
+import math
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
+from urllib.parse import urlparse
 
 from dotenv import load_dotenv
 
@@ -26,6 +28,27 @@ DEFAULT_KALSHI_SERIES = (
     "KXTECH",
     "KXSCI",
 )
+
+# Requests to these hosts carry signatures and, for Polymarket, the API key and passphrase in
+# headers. Kalshi signatures do not cover the request body, so a signed request sent to any other
+# host could be replayed as a different order. Base URLs are therefore restricted to the exchanges.
+_ALLOWED_HOSTS = {
+    "kalshi_base_url": ("kalshi.com", "kalshi.co"),
+    "poly_clob_url": ("polymarket.com",),
+    "poly_gamma_url": ("polymarket.com",),
+}
+
+
+def _host_allowed(url: str, domains: tuple[str, ...]) -> bool:
+    try:
+        parsed = urlparse(url)
+        port = parsed.port
+    except ValueError:
+        return False
+    host = (parsed.hostname or "").lower()
+    if parsed.scheme != "https" or parsed.username or parsed.password or port not in (None, 443):
+        return False
+    return any(host == d or host.endswith("." + d) for d in domains)
 
 
 class ConfigError(ValueError):
@@ -48,9 +71,12 @@ def _get_bool(name: str, default: bool) -> bool:
 def _get_float(name: str, default: float) -> float:
     raw = _get(name, str(default))
     try:
-        return float(raw)
+        value = float(raw)
     except ValueError as exc:
         raise ConfigError(f"{name} must be a number, got {raw!r}") from exc
+    if not math.isfinite(value):
+        raise ConfigError(f"{name} must be a finite number, got {raw!r}")
+    return value
 
 
 def _get_int(name: str, default: int) -> int:
@@ -71,7 +97,7 @@ def _get_list(name: str, default: tuple[str, ...]) -> tuple[str, ...]:
 @dataclass(frozen=True)
 class Settings:
     # Kalshi
-    kalshi_api_key_id: str = ""
+    kalshi_api_key_id: str = field(default="", repr=False)
     kalshi_private_key: str = field(default="", repr=False)
     kalshi_private_key_path: str = ""
     kalshi_base_url: str = "https://api.elections.kalshi.com/trade-api/v2"
@@ -80,7 +106,7 @@ class Settings:
 
     # Polymarket
     poly_private_key: str = field(default="", repr=False)
-    poly_funder_address: str = ""
+    poly_funder_address: str = field(default="", repr=False)
     poly_signature_type: int = 0
     poly_api_key: str = field(default="", repr=False)
     poly_api_secret: str = field(default="", repr=False)
@@ -172,9 +198,12 @@ class Settings:
             errors.append(
                 "POLY_SIGNATURE_TYPE must be 0 (EOA), 1 (email/Magic), or 2 (browser proxy)"
             )
-        for name in ("kalshi_base_url", "poly_clob_url", "poly_gamma_url"):
-            if not getattr(self, name).startswith("https://"):
-                errors.append(f"{name.upper()} must use https://")
+        for name, domains in _ALLOWED_HOSTS.items():
+            if not _host_allowed(getattr(self, name), domains):
+                errors.append(
+                    f"{name.upper()} must be an https:// URL on "
+                    + " or ".join(f"*.{d}" for d in domains)
+                )
         if errors:
             raise ConfigError("Invalid configuration:\n  - " + "\n  - ".join(errors))
 
