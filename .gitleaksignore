@@ -1,0 +1,4 @@
+# False positives in deleted files from the initial commit: code that searched for the PEM
+# "BEGIN/END RSA PRIVATE KEY" marker strings. No key material was ever committed.
+3657c9f5eb2c6674e9250b08feb59f07f927a58d:fix_env.py:private-key:3
+3657c9f5eb2c6674e9250b08feb59f07f927a58d:scripts/format_kalshi_key.py:private-key:16

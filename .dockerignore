@@ -1,0 +1,17 @@
+.env
+.env.*
+*.pem
+*.key
+secrets/
+data/
+logs/
+*.db
+.git/
+.github/
+.venv/
+venv/
+**/__pycache__/
+.pytest_cache/
+.ruff_cache/
+tests/
+docs/
