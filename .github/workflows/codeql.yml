@@ -13,6 +13,8 @@ permissions:
 
 jobs:
   analyze:
+    # Code scanning is free for public repositories; private ones need GitHub Advanced Security.
+    if: ${{ !github.event.repository.private }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
